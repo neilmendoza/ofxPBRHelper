@@ -15,7 +15,7 @@ void ofxPBRHelper::setup(ofxPBR * pbr, string folderPath, bool enableOtherGui)
 
 	loadJsonFiles();
 	if (jsonFiles.size() != 0) {
-		settings.openLocal(folderPath + "/" + jsonFiles[0] + ".json");
+        settings = ofLoadJson(folderPath + "/" + jsonFiles[0] + ".json");
 		currentJsonIndex = 0;
 		setPBRFromJson();
     }else{
@@ -42,7 +42,7 @@ void ofxPBRHelper::drawGui()
         
         if(ImGui::CollapsingHeader("General")){
             if (ImGui::Button("save")) {
-                if (settings.isNull() == true && currentJsonIndex == -1) {
+                if (settings.is_null() == true && currentJsonIndex == -1) {
                     ImGui::OpenPopup("Save As ...");
                 }else{
                     saveJson(jsonFiles[currentJsonIndex]);
@@ -66,7 +66,7 @@ void ofxPBRHelper::drawGui()
             }
             
             if (Combo("load", &currentJsonIndex, jsonFiles)) {
-                settings.openLocal(folderPath + "/" + jsonFiles[currentJsonIndex] + ".json");
+                settings = ofLoadJson(folderPath + "/" + jsonFiles[currentJsonIndex] + ".json");
                 for (auto m : materials) {
                     setMaterialsFromJson(m.first);
                 }
@@ -928,7 +928,7 @@ void ofxPBRHelper::saveJson(string fileName)
 	settings["pbr"]["enableEnvironment"] = pbrParams.enableEnvironment;
 	settings["pbr"]["shadowMapRes"] = pbrParams.shadowMapRes;
 
-	Json::Value cubeMapJson;
+	ofJson cubeMapJson;
 	for (auto cubeMap : cubeMaps) {
 		ofxPBRCubeMap* c = cubeMap.second.first;
 		CubeMapParams* p = &cubeMap.second.second;
@@ -941,7 +941,7 @@ void ofxPBRHelper::saveJson(string fileName)
 	}
 	settings["cubeMap"] = cubeMapJson;
 
-	Json::Value materialJson;
+	ofJson materialJson;
 	for (auto material : materials) {
 		ofxPBRMaterial* m = material.second.first;
 		MaterialParams* p = &material.second.second;
@@ -984,7 +984,7 @@ void ofxPBRHelper::saveJson(string fileName)
 	}
 	settings["material"] = materialJson;
 
-	Json::Value lightJson;
+	ofJson lightJson;
 	for (auto light : lights) {
 		ofxPBRLight* l = light.second.first;
 		LightParams* p = &light.second.second;
@@ -1024,87 +1024,87 @@ void ofxPBRHelper::saveJson(string fileName)
 	}
 	settings["light"] = lightJson;
 
-	settings.save(folderPath + "/" + fileName + ".json");
+    ofSaveJson(folderPath + "/" + fileName + ".json", settings);
 }
 
 void ofxPBRHelper::setMaterialsFromJson(string materialName)
 {
 	ofxPBRMaterial* material = materials[materialName].first;
 	MaterialParams* params = &materials[materialName].second;
-	if (settings.isNull() == false && settings["material"][materialName].isNull() == false) {
-		Json::Value m = settings["material"][materialName];
+	if (settings.is_null() == false && settings["material"][materialName].is_null() == false) {
+		ofJson m = settings["material"][materialName];
 		material->baseColor = ofFloatColor(
-			m["baseColor"]["r"].asFloat(),
-			m["baseColor"]["g"].asFloat(),
-			m["baseColor"]["b"].asFloat(),
-			m["baseColor"]["a"].asFloat()
+			m["baseColor"]["r"].get<float>(),
+			m["baseColor"]["g"].get<float>(),
+			m["baseColor"]["b"].get<float>(),
+			m["baseColor"]["a"].get<float>()
 		);
-		string baseColorTex = m["baseColorTex"].asString();
+		string baseColorTex = m["baseColorTex"].get<string>();
 		if (files->textures.find(baseColorTex) != files->textures.end()) {
 			material->baseColorMap = files->textures[baseColorTex];
 			params->baseColorTex = baseColorTex;
 		}
-		material->enableBaseColorMap = m["enableBaseColorMap"].asBool();
+		material->enableBaseColorMap = m["enableBaseColorMap"].get<bool>();
 
-		string roughnessTex = m["roughnessTex"].asString();
+		string roughnessTex = m["roughnessTex"].get<string>();
 		if (files->textures.find(roughnessTex) != files->textures.end()) {
 			material->roughnessMap = files->textures[roughnessTex];
 			params->roughnessTex = roughnessTex;
 		}
-		material->enableRoughnessMap = m["enableRoughnessMap"].asBool();
-		material->roughness = m["roughness"].asFloat();
+		material->enableRoughnessMap = m["enableRoughnessMap"].get<bool>();
+		material->roughness = m["roughness"].get<float>();
 
-		string metallicTex = m["metallicTex"].asString();
+		string metallicTex = m["metallicTex"].get<string>();
 		if (files->textures.find(metallicTex) != files->textures.end()) {
 			material->metallicMap = files->textures[metallicTex];
 			params->metallicTex = metallicTex;
 		}
-		material->enableMetallicMap = m["enableMetallicMap"].asBool();
-		material->metallic = m["metallic"].asFloat();
+		material->enableMetallicMap = m["enableMetallicMap"].get<bool>();
+		material->metallic = m["metallic"].get<float>();
 
-		string normalTex = m["normalTex"].asString();
+		string normalTex = m["normalTex"].get<string>();
 		if (files->textures.find(normalTex) != files->textures.end()) {
 			material->normalMap = files->textures[normalTex];
 			params->normalTex = normalTex;
 		}
-		material->enableNormalMap = m["enableNormalMap"].asBool();
-		material->normalVal = m["normalVal"].asFloat();
+		material->enableNormalMap = m["enableNormalMap"].get<bool>();
+		material->normalVal = m["normalVal"].get<float>();
 
-		string occlusionTex = m["occlusionTex"].asString();
+		string occlusionTex = m["occlusionTex"].get<string>();
 		if (files->textures.find(occlusionTex) != files->textures.end()) {
 			material->occlusionMap = files->textures[occlusionTex];
 			params->occlusionTex = occlusionTex;
 		}
-		material->enableOcclusionMap = m["enableOcclusionMap"].asBool();
+		material->enableOcclusionMap = m["enableOcclusionMap"].get<bool>();
 
-		string emissionTex = m["emissionTex"].asString();
+		string emissionTex = m["emissionTex"].get<string>();
 		if (files->textures.find(emissionTex) != files->textures.end()) {
 			material->emissionMap = files->textures[emissionTex];
 			params->emissionTex = emissionTex;
 		}
-		material->enableEmissionMap = m["enableEmissionMap"].asBool();
+		material->enableEmissionMap = m["enableEmissionMap"].get<bool>();
 
-		string detailBaseColorTex = m["detailBaseColorTex"].asString();
+		string detailBaseColorTex = m["detailBaseColorTex"].get<string>();
 		if (files->textures.find(detailBaseColorTex) != files->textures.end()) {
 			material->detailBaseColorMap = files->textures[detailBaseColorTex];
 			params->detailBaseColorTex = detailBaseColorTex;
 		}
-		material->enableDetailBaseColorMap = m["enableDetailBaseColorMap"].asBool();
+		material->enableDetailBaseColorMap = m["enableDetailBaseColorMap"].get<bool>();
 
-		string detailNormalTex = m["detailNormalTex"].asString();
+		string detailNormalTex = m["detailNormalTex"].get<string>();
 		if (files->textures.find(detailNormalTex) != files->textures.end()) {
 			material->detailNormalMap = files->textures[detailNormalTex];
 			params->detailNormalTex = detailNormalTex;
 		}
-		material->enableDetailNormalMap = m["enableDetailNormalMap"].asBool();
+		material->enableDetailNormalMap = m["enableDetailNormalMap"].get<bool>();
 
 		material->textureRepeat = ofVec2f(
-			m["textureRepeat"]["x"].asFloat(),
-			m["textureRepeat"]["y"].asFloat());
+			m["textureRepeat"]["x"].get<float>(),
+			m["textureRepeat"]["y"].get<float>());
 
 		material->detailTextureRepeat = ofVec2f(
-			m["detailTextureRepeat"]["x"].asFloat(),
-			m["detailTextureRepeat"]["y"].asFloat());
+			m["detailTextureRepeat"]["x"].get<float>(),
+			m["detailTextureRepeat"]["y"].get<float>());
 	}
 }
 
@@ -1113,41 +1113,41 @@ void ofxPBRHelper::setLightsFromJson(string lightName)
 	if (lights.find(lightName) != lights.end()) {
 		ofxPBRLight* light = lights[lightName].first;
 		LightParams* params = &lights[lightName].second;
-		if (settings.isNull() == false && settings["light"][lightName].isNull() == false) {
-			Json::Value lightParams = settings["light"][lightName];
+		if (settings.is_null() == false && settings["light"][lightName].is_null() == false) {
+			ofJson lightParams = settings["light"][lightName];
 
-			params->enable = lightParams["enable"].asBool();
+			params->enable = lightParams["enable"].get<bool>();
 
-			params->lightType = lightParams["lightType"].asInt();
+			params->lightType = lightParams["lightType"].get<int>();
 
-			params->pos.x = lightParams["position"]["x"].asFloat();
-			params->pos.y = lightParams["position"]["y"].asFloat();
-			params->pos.z = lightParams["position"]["z"].asFloat();
+			params->pos.x = lightParams["position"]["x"].get<float>();
+			params->pos.y = lightParams["position"]["y"].get<float>();
+			params->pos.z = lightParams["position"]["z"].get<float>();
 
-			params->target.x = lightParams["target"]["x"].asFloat();
-			params->target.y = lightParams["target"]["y"].asFloat();
-			params->target.z = lightParams["target"]["z"].asFloat();
+			params->target.x = lightParams["target"]["x"].get<float>();
+			params->target.y = lightParams["target"]["y"].get<float>();
+			params->target.z = lightParams["target"]["z"].get<float>();
 
-			params->skyLightCoord.x = lightParams["skyLightCoord"]["x"].asFloat();
-			params->skyLightCoord.y = lightParams["skyLightCoord"]["y"].asFloat();
+			params->skyLightCoord.x = lightParams["skyLightCoord"]["x"].get<float>();
+			params->skyLightCoord.y = lightParams["skyLightCoord"]["y"].get<float>();
 
-			params->color.r = lightParams["color"]["r"].asFloat();
-			params->color.g = lightParams["color"]["g"].asFloat();
-			params->color.b = lightParams["color"]["b"].asFloat();
-			params->color.a = lightParams["color"]["a"].asFloat();
+			params->color.r = lightParams["color"]["r"].get<float>();
+			params->color.g = lightParams["color"]["g"].get<float>();
+			params->color.b = lightParams["color"]["b"].get<float>();
+			params->color.a = lightParams["color"]["a"].get<float>();
 
-			params->intensity = lightParams["intensity"].asFloat();
+			params->intensity = lightParams["intensity"].get<float>();
 
-			params->radius = lightParams["radius"].asFloat();
-			params->cutoff = lightParams["cutoff"].asFloat();
-			params->spotFactor = lightParams["spotFactor"].asFloat();
+			params->radius = lightParams["radius"].get<float>();
+			params->cutoff = lightParams["cutoff"].get<float>();
+			params->spotFactor = lightParams["spotFactor"].get<float>();
 
-			params->shadowType = lightParams["shadowType"].asInt();
-			params->nearClip = lightParams["nearClip"].asFloat();
-			params->farClip = lightParams["farClip"].asFloat();
-			params->scale = lightParams["scale"].asFloat();
-			params->shadowBias = lightParams["shadowBias"].asFloat();
-			params->softShadowExponent = lightParams["softShadowExponent"].asFloat();
+			params->shadowType = lightParams["shadowType"].get<int>();
+			params->nearClip = lightParams["nearClip"].get<float>();
+			params->farClip = lightParams["farClip"].get<float>();
+			params->scale = lightParams["scale"].get<float>();
+			params->shadowBias = lightParams["shadowBias"].get<float>();
+			params->softShadowExponent = lightParams["softShadowExponent"].get<float>();
 		}
 
 		light->enable(params->enable);
@@ -1204,12 +1204,12 @@ void ofxPBRHelper::setCubeMapsFromJson(string cubeMapName)
 {
 	ofxPBRCubeMap* cubeMap = cubeMaps[cubeMapName].first;
 	CubeMapParams* params = &cubeMaps[cubeMapName].second;
-	if (settings.isNull() == false && settings["cubeMap"][cubeMapName].isNull() == false) {
-		Json::Value c = settings["cubeMap"][cubeMapName];
-		params->resolution = c["resolution"].asInt();
-		params->url = c["url"].asString();
+	if (settings.is_null() == false && settings["cubeMap"][cubeMapName].is_null() == false) {
+		ofJson c = settings["cubeMap"][cubeMapName];
+		params->resolution = c["resolution"].get<int>();
+		params->url = c["url"].get<string>();
 		if (params->url != "") {
-			cubeMap->load(c["url"].asString(), params->resolution, true, files->getPath() + "/cubemapCache/");
+			cubeMap->load(c["url"].get<string>(), params->resolution, true, files->getPath() + "/cubemapCache/");
 			if (pbrParams.cubeMapName == cubeMapName && cubeMaps.find(pbrParams.cubeMapName) != cubeMaps.end()) {
 				currentCubeMapKey = pbrParams.cubeMapName;
 				pbr->setCubeMap(cubeMaps[cubeMapName].first);
@@ -1218,9 +1218,9 @@ void ofxPBRHelper::setCubeMapsFromJson(string cubeMapName)
 				}
 			}
 		}
-		params->exposure = c["exposure"].asFloat();
-		params->rotation = c["rotation"].asFloat();
-		params->envronmentLevel = c["envronmentLevel"].asFloat();
+		params->exposure = c["exposure"].get<float>();
+		params->rotation = c["rotation"].get<float>();
+		params->envronmentLevel = c["envronmentLevel"].get<float>();
 	}
 	cubeMap->setExposure(params->exposure);
 	cubeMap->setRotation(params->rotation);
@@ -1229,9 +1229,9 @@ void ofxPBRHelper::setCubeMapsFromJson(string cubeMapName)
 
 void ofxPBRHelper::setPBRFromJson()
 {
-	if (settings.isNull() == false && settings["pbr"].isNull() == false) {
-		Json::Value p = settings["pbr"];
-		pbrParams.cubeMapName = p["cubeMapName"].asString();
+	if (settings.is_null() == false && settings["pbr"].is_null() == false) {
+		ofJson p = settings["pbr"];
+		pbrParams.cubeMapName = p["cubeMapName"].get<string>();
 		if (pbrParams.cubeMapName != "" && cubeMaps.find(pbrParams.cubeMapName) != cubeMaps.end()) {
 			currentCubeMapKey = pbrParams.cubeMapName;
 			pbr->setCubeMap(cubeMaps[pbrParams.cubeMapName].first);
@@ -1239,9 +1239,9 @@ void ofxPBRHelper::setPBRFromJson()
 				if (cubeMapKeys[i] == currentCubeMapKey) currentCubeMapIndex = i;
 			}
 		}
-        pbrParams.enableCubeMap = p["enableCubeMap"].asBool();
-		pbrParams.shadowMapRes = p["shadowMapRes"].asInt();
-		pbrParams.enableEnvironment = p["enableEnvironment"].asBool();
+        pbrParams.enableCubeMap = p["enableCubeMap"].get<bool>();
+		pbrParams.shadowMapRes = p["shadowMapRes"].get<int>();
+		pbrParams.enableEnvironment = p["enableEnvironment"].get<bool>();
 	}
     pbr->enableCubeMap(pbrParams.enableCubeMap);
 	pbr->resizeDepthMap(pbrParams.shadowMapRes);

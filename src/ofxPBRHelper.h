@@ -2,7 +2,6 @@
 #include "ofMain.h"
 #include "ofxPBR.h"
 #include "ofxImGui.h"
-#include "ofxJSON.h"
 #include "ofxPBRFiles.h"
 #include "ofxPBRImage.h"
 #include "ofxPBRHelperParams.h"
@@ -23,9 +22,9 @@ private:
 	void setCubeMapsFromJson(string cubeMapName);
 	void setPBRFromJson();
 
-	ofxImGui gui;
+	ofxImGui::Gui gui;
     bool enableOtherGui;
-	ofxJSONElement settings;
+	ofJson settings;
 	ofxPBR* pbr;
 	ofxPBRFiles* files;
 	string folderPath;
