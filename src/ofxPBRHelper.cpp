@@ -270,7 +270,7 @@ void ofxPBRHelper::drawGui()
         }
         
         if(ImGui::CollapsingHeader("Lights")){
-            ImGui::BeginChild("light list", ImVec2(150, 400), true);
+            ImGui::BeginChild("light list", ImVec2(150, 600), true);
 
             int lightIndex = 0;
 
@@ -289,7 +289,7 @@ void ofxPBRHelper::drawGui()
             ImGui::SameLine();
 
             ImGui::BeginGroup();
-            ImGui::BeginChild("light params", ImVec2(0, 400));
+            ImGui::BeginChild("light params", ImVec2(0, 600));
             if (lights.find(currentLightKey) != lights.end()) {
                 ofxPBRLight* light = lights[currentLightKey].first;
                 LightParams* lightParam = &lights[currentLightKey].second;
